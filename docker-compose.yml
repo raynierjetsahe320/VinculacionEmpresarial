@@ -1,0 +1,24 @@
+
+version: '3'
+
+services:
+  web:
+    image: php:8.2-apache
+    container_name: fes_web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8
+    container_name: fes_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fesaragon
+    ports:
+      - "3306:3306"
