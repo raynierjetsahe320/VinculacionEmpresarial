@@ -1,4 +1,3 @@
-
 <?php
 $conexion = mysqli_connect(
     "mysql",
@@ -10,4 +9,6 @@ $conexion = mysqli_connect(
 if(!$conexion){
     die("Error de conexion");
 }
-?>
+// asegurar UTF-8
+mysqli_set_charset($conexion, 'utf8mb4');
+
