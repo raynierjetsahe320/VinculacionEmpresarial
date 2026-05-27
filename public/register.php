@@ -12,8 +12,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     if($nombre === '' || $correo === '' || $cuenta === '' || $password === ''){
         $errors[] = 'Todos los campos son obligatorios.';
     }
-    if(!str_ends_with($correo, '@comunidad.fes.aragon')){
-        $errors[] = 'El correo debe terminar en @comunidad.fes.aragon';
+    if(!str_ends_with($correo, '@aragon.unam.mx')){
+        $errors[] = 'El correo debe terminar en @aragon.unam.mx';
     }
     if(!preg_match('/^\d{9}$/', $cuenta)){
         $errors[] = 'El número de cuenta debe tener exactamente 9 dígitos.';

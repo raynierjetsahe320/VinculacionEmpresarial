@@ -20,27 +20,58 @@ if(!$user || $user['rol'] !== 'admin'){
 
 // obtener datos para graficas
 global $conexion;
+// obtener recuento por lugar: incluir edificios (E:) y zonas (Z:) que tengan al menos 1 incidencia
 $labels = [];
 $counts = [];
-$res = mysqli_query($conexion, "SELECT e.nombre, COUNT(i.id) as cnt FROM edificios e LEFT JOIN incidencias i ON i.edificio_id=e.id GROUP BY e.id ORDER BY e.id");
-while($r = mysqli_fetch_assoc($res)){
-    $labels[] = fix_encoding($r['nombre']);
-    $counts[] = intval($r['cnt']);
+$res = mysqli_query($conexion, "(
+    SELECT CONCAT('E: ', e.nombre) AS lugar, COUNT(i.id) AS cnt
+    FROM incidencias i
+    JOIN edificios e ON i.edificio_id = e.id
+    GROUP BY e.id
+)
+UNION ALL
+(
+    SELECT CONCAT('Z: ', z.nombre) AS lugar, COUNT(i2.id) AS cnt
+    FROM incidencias i2
+    JOIN zonas z ON i2.zona_id = z.id
+    GROUP BY z.id
+)
+ORDER BY cnt DESC");
+if($res){
+    while($r = mysqli_fetch_assoc($res)){
+        $labels[] = fix_encoding($r['lugar']);
+        $counts[] = intval($r['cnt']);
+    }
+} else {
+    error_log('dashboard combined places query failed: '.mysqli_error($conexion));
 }
 
 // obtener lista de edificios para mostrar en el mapa
 $buildings = [];
-$rb = mysqli_query($conexion, "SELECT id, nombre FROM edificios ORDER BY id");
-while($b = mysqli_fetch_assoc($rb)){
-    $buildings[] = $b;
+// obtener lugares (edificios y zonas) que tienen incidencias
+$rb = mysqli_query($conexion, "SELECT tipo, id, nombre, cnt FROM (
+    SELECT 'E' as tipo, e.id as id, e.nombre as nombre, COUNT(i.id) as cnt FROM edificios e JOIN incidencias i ON i.edificio_id = e.id GROUP BY e.id
+    UNION ALL
+    SELECT 'Z' as tipo, z.id as id, z.nombre as nombre, COUNT(i2.id) as cnt FROM zonas z JOIN incidencias i2 ON i2.zona_id = z.id GROUP BY z.id
+) t ORDER BY FIELD(tipo, 'E', 'Z'), id");
+if($rb){
+    while($b = mysqli_fetch_assoc($rb)){
+        $buildings[] = $b;
+    }
+} else {
+    error_log('dashboard buildings query failed: '.mysqli_error($conexion));
 }
 
 $prio_labels = [];
 $prio_counts = [];
 $res2 = mysqli_query($conexion, "SELECT prioridad, COUNT(*) as cnt FROM incidencias GROUP BY prioridad");
-while($p = mysqli_fetch_assoc($res2)){
-    $prio_labels[] = fix_encoding($p['prioridad']);
-    $prio_counts[] = intval($p['cnt']);
+if($res2) {
+    while($p = mysqli_fetch_assoc($res2)){
+        $prio_labels[] = fix_encoding($p['prioridad']);
+        $prio_counts[] = intval($p['cnt']);
+    }
+} else {
+    error_log('dashboard priority query failed: '.mysqli_error($conexion));
 }
 ?>
 <!DOCTYPE html>
@@ -128,7 +159,7 @@ while($p = mysqli_fetch_assoc($res2)){
                     <h4>Edificios</h4>
                     <ol>
                     <?php foreach($buildings as $bb): ?>
-                        <li><?php echo htmlspecialchars(fix_encoding($bb['nombre'])); ?></li>
+                        <li><?php echo htmlspecialchars(fix_encoding(($bb['tipo']==='Z' ? 'Z: ' : 'E: ').$bb['nombre'])); ?></li>
                     <?php endforeach; ?>
                     </ol>
                 </div>

@@ -3,22 +3,60 @@ session_start();
 
 // corregir ruta relativa al archivo de configuración
 require_once __DIR__ . '/../config/database.php';
-
 $correo = $_POST['correo'] ?? '';
 $password = $_POST['password'] ?? '';
 $error = '';
 
-if($_SERVER['REQUEST_METHOD'] === 'POST' && $correo !== ''){
-    require_once __DIR__ . '/../src/auth.php';
-    $user = find_user_by_email($correo);
-    if($user && $user['password'] === $password){
-        // login success (plain password for now, migrate to hashes later)
-        $_SESSION['user_id'] = $user['id'];
-        header('Location: report_list.php');
-        exit;
+require_once __DIR__ . '/../src/auth.php';
+
+// Registro rápido desde login (opcional)
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_action'])){
+    $nombre = trim($_POST['nombre'] ?? '');
+    $nuevo_correo = trim($_POST['new_correo'] ?? '');
+    $cuenta = trim($_POST['cuenta'] ?? '');
+    $pass = trim($_POST['new_password'] ?? '');
+    $pass2 = trim($_POST['new_password_confirm'] ?? '');
+    if($nombre === '' || $nuevo_correo === '' || $cuenta === '' || $pass === '' || $pass2 === ''){
+        $error = 'Todos los campos de registro son obligatorios.';
+    } elseif(!str_ends_with($nuevo_correo, '@aragon.unam.mx')){
+        $error = 'El correo debe terminar en @aragon.unam.mx';
+    } elseif($pass !== $pass2){
+        $error = 'Las contraseñas no coinciden.';
+    } elseif(!preg_match('/^\d{9}$/', $cuenta)){
+        $error = 'El número de cuenta debe tener 9 dígitos.';
     } else {
-        $error = "Credenciales incorrectas";
+        $ok = register_user($nombre, $nuevo_correo, $cuenta, $pass);
+        if($ok){
+            $uid = mysqli_insert_id($GLOBALS['conexion']);
+            $_SESSION['user_id'] = $uid;
+            header('Location: report_list.php'); exit;
+        } else {
+            $error = 'No se pudo registrar. ¿El correo ya existe?';
+        }
     }
+}
+
+// Login normal
+if($_SERVER['REQUEST_METHOD'] === 'POST' && $correo !== '' && !isset($_POST['register_action'])){
+    $user = find_user_by_email($correo);
+    if($user){
+        $stored = $user['password'];
+        // si está hasheada, usar password_verify
+        if(password_verify($password, $stored)){
+            $_SESSION['user_id'] = $user['id'];
+            header('Location: report_list.php'); exit;
+        } else {
+            // legacy plain-text: si coinciden, re-hash y actualizar
+            if($stored === $password){
+                $newhash = password_hash($password, PASSWORD_DEFAULT);
+                $esc = mysqli_real_escape_string($conexion, $newhash);
+                mysqli_query($conexion, "UPDATE usuarios SET password='$esc' WHERE id=".intval($user['id']));
+                $_SESSION['user_id'] = $user['id'];
+                header('Location: report_list.php'); exit;
+            }
+        }
+    }
+    $error = 'Credenciales incorrectas';
 }
 ?>
 <!DOCTYPE html>
@@ -59,6 +97,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $correo !== ''){
             </label>
 
             <button class="btn" type="submit">Iniciar Sesión</button>
+        </form>
+
+        <hr>
+        <h3>Registro rápido (personal académico)</h3>
+        <form action="login.php" method="POST" class="login-form" autocomplete="off">
+            <input type="hidden" name="register_action" value="1">
+            <label>Nombre completo<br><input type="text" name="nombre" required></label><br>
+            <label>Correo institucional<br><input type="email" name="new_correo" required placeholder="usuario@aragon.unam.mx"></label><br>
+            <label>Número de cuenta<br><input type="text" name="cuenta" required placeholder="9 dígitos"></label><br>
+            <label>Contraseña<br><input type="password" name="new_password" required></label><br>
+            <label>Confirmar contraseña<br><input type="password" name="new_password_confirm" required></label><br>
+            <button class="btn" type="submit">Crear cuenta</button>
         </form>
 
         <div class="login-footer">

@@ -7,23 +7,16 @@ VALUES
 ('Alumno Dos','alumno2@comunidad.fes.aragon','202098765','Alumno123','alumno');
 
 
--- Edificios reales de ejemplo (A1..A12 + Anexo Derecho + DUACyD)
+-- Edificios (E:)
 INSERT INTO edificios(nombre, pisos)
 VALUES
-('A1 - Ingeniería Civil',3),
-('A2 - Mecánica',4),
-('A3 - Eléctrica',5),
-('A4 - Industrial',4),
-('A5 - Computación',5),
-('A6 - Laboratorios',3),
-('A7 - Arquitectura',2),
-('A8 - Biblioteca',4),
-('A9 - Administración',3),
-('A10 - Coordinaciones',2),
-('A11 - Servicios Escolares',2),
-('A12 - Posgrado',2),
-('Anexo Derecho',2),
-('DUACyD',4);
+('A1',3),('A2',3),('A3',3),('A4',3),('A5',3),('A6',3),('A7',3),('A8',3),('A9',3),('A10',3),('A11',3),('A12',3),
+('Anexo Derecho',2),('DUACyD',4),('Salón Usos Múltiples',1),('Gimnasio',1),('Adquisiciones',1),('Centro de Cómputo',1),
+('Centro de Lenguas Extranjeras (CELE)',1),('Centro Tecnológico',1),('Biblioteca',1),('Servicio Médico y Comedor',1),
+('Módulo de Extensión Universitaria',1),('Clínica Odontológica Izcalla',1),('Edificio de Gobierno',1),
+('Laboratorio L-1',1),('Laboratorio L-2',1),('Laboratorio L-3',1),('Laboratorio L-4',1);
+
+
 
 -- Salones (generados sencillos: Sala 101..105 por edificio)
 INSERT INTO salones(nombre, edificio_id)
@@ -36,27 +29,11 @@ WHERE n <= 5;
 
 -- Incidencias de ejemplo (algunas creadas por alumnos)
 -- Zonas principales donde pueden generarse reportes
+-- Zonas (Z:)
 INSERT INTO zonas(nombre) VALUES
-('Salón Usos Múltiples'),
-('Gimnasio'),
 ('Pesas y Regaderas'),
-('Adquisiciones'),
 ('Instalaciones Académicas y Equipo Audiovisual'),
-('Centro de Cómputo'),
-('Centro de Lenguas Extranjeras (CELE)'),
-('Centro Tecnológico'),
-('Biblioteca'),
-('Servicio Médico y Comedor'),
-('Módulo de Extensión Universitaria'),
-('Estacionamiento Techado'),
-('Clínica Odontológica Izcalla'),
-('Esculturas'),
-('Edificio de Gobierno'),
-('Torres de la Facultad'),
-('Plaza del Estudiante'),
-('A-1'),('A-2'),('A-3'),('A-4'),('A-5'),('A-6'),('A-7'),('A-8'),('A-9'),('A-10'),('A-11'),('A-12'),
-('Laboratorio L-1'),('Laboratorio L-2'),('Laboratorio L-3'),('Laboratorio L-4'),
-('Cancha Básquetbol'),('Cancha Fútbol'),('Cancha Béisbol'),('Cancha Fútbol rápido'),('Cancha Voleibol playero');
+('Esculturas');
 
 -- Incidencias de ejemplo (algunas creadas por alumnos), ahora con zona_id
 INSERT INTO incidencias(titulo, descripcion, tipo, prioridad, estado, edificio_id, salon_id, zona_id, user_id)

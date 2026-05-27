@@ -9,7 +9,7 @@ CREATE TABLE usuarios (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE edificios (
+CREATE TABLE  (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
     pisos INT DEFAULT 1
@@ -18,8 +18,8 @@ CREATE TABLE edificios (
 CREATE TABLE salones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    edificio_id INT NOT NULL,
-    FOREIGN KEY (edificio_id) REFERENCES edificios(id) ON DELETE CASCADE
+    _id INT NOT NULL,
+    FOREIGN KEY (_id) REFERENCES (id) ON DELETE CASCADE
 );
 CREATE TABLE zonas (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -33,13 +33,13 @@ CREATE TABLE incidencias (
     tipo VARCHAR(100) DEFAULT 'General',
     prioridad VARCHAR(50) DEFAULT 'Media',
     estado VARCHAR(50) DEFAULT 'Abierta',
-    edificio_id INT,
+    _id INT,
     salon_id INT,
     zona_id INT,
     user_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL,
-    FOREIGN KEY (edificio_id) REFERENCES edificios(id) ON DELETE SET NULL,
+    FOREIGN KEY (_id) REFERENCES (id) ON DELETE SET NULL,
     FOREIGN KEY (salon_id) REFERENCES salones(id) ON DELETE SET NULL,
     FOREIGN KEY (zona_id) REFERENCES zonas(id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE SET NULL

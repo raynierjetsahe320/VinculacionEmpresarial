@@ -15,8 +15,10 @@ function register_user($nombre, $correo, $cuenta, $password){
     $nombre = mysqli_real_escape_string($conexion, $nombre);
     $correo = mysqli_real_escape_string($conexion, $correo);
     $cuenta = mysqli_real_escape_string($conexion, $cuenta);
-    $password = mysqli_real_escape_string($conexion, $password);
-    $sql = "INSERT INTO usuarios(nombre, correo, cuenta, password) VALUES ('$nombre','$correo','$cuenta','$password')";
+    // almacenar password con hash
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $hash = mysqli_real_escape_string($conexion, $hash);
+    $sql = "INSERT INTO usuarios(nombre, correo, cuenta, password) VALUES ('$nombre','$correo','$cuenta','$hash')";
     return mysqli_query($conexion, $sql);
 }
 

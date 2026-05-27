@@ -15,9 +15,15 @@ $r = mysqli_fetch_assoc($res);
 ?>
 <h2>Reporte #<?php echo $r['id']; ?> - <?php echo htmlspecialchars($r['titulo']); ?></h2>
 <p><strong>Autor:</strong> <?php echo htmlspecialchars(fix_encoding($r['autor'])); ?></p>
-<p><strong>Edificio:</strong> <?php echo htmlspecialchars(fix_encoding($r['edificio'])); ?></p>
+<p><strong>Lugar:</strong> <?php
+    $l = $r['zona'] ?? null;
+    if($l && $l!==''){
+        echo htmlspecialchars('Z: '.fix_encoding($l));
+    } else {
+        echo htmlspecialchars('E: '.fix_encoding($r['edificio'] ?? ''));
+    }
+?></p>
 <p><strong>Salón:</strong> <?php echo htmlspecialchars(fix_encoding($r['salon'])); ?></p>
-<p><strong>Zona:</strong> <?php echo htmlspecialchars(fix_encoding($r['zona'])); ?></p>
 <p><strong>Prioridad:</strong> <?php echo htmlspecialchars(fix_encoding($r['prioridad'])); ?></p>
 <p><strong>Estado:</strong> <?php echo htmlspecialchars(fix_encoding($r['estado'])); ?></p>
 <p><strong>Descripción:</strong><br><?php echo nl2br(htmlspecialchars(fix_encoding($r['descripcion']))); ?></p>
@@ -28,8 +34,14 @@ $r = mysqli_fetch_assoc($res);
 <?php endif; ?>
 
 <?php
-// mostrar mapa del campus y lista de edificios
-$rb = mysqli_query($conexion, "SELECT id, nombre FROM edificios ORDER BY id");
+// mostrar mapa del campus y lista combinada: edificios + zonas (excluyendo canchas/torres/estacionamiento/plaza y A-*)
+$rb = mysqli_query($conexion, "SELECT tipo, id, nombre FROM (
+    SELECT 'E' as tipo, e.id as id, e.nombre as nombre FROM edificios e
+    WHERE e.nombre NOT LIKE 'A-%' AND e.nombre NOT LIKE '%Cancha%' AND e.nombre NOT LIKE '%Torres%' AND e.nombre NOT LIKE '%Estacionamiento%' AND e.nombre NOT LIKE '%Plaza%'
+    UNION ALL
+    SELECT 'Z' as tipo, z.id as id, z.nombre as nombre FROM zonas z
+    WHERE z.nombre NOT LIKE 'A-%' AND z.nombre NOT LIKE '%Cancha%' AND z.nombre NOT LIKE '%Torres%' AND z.nombre NOT LIKE '%Estacionamiento%' AND z.nombre NOT LIKE '%Plaza%'
+) t ORDER BY FIELD(tipo,'E','Z'), id");
 ?>
 <div class="panel" style="margin-top:18px">
     <h3 class="panel-title">Mapa del campus</h3>
@@ -41,7 +53,7 @@ $rb = mysqli_query($conexion, "SELECT id, nombre FROM edificios ORDER BY id");
             <h4>Edificios</h4>
             <ol>
             <?php while($bb = mysqli_fetch_assoc($rb)): ?>
-                <li><?php echo htmlspecialchars(fix_encoding($bb['nombre'])); ?></li>
+                <li><?php echo htmlspecialchars(fix_encoding(($bb['tipo']==='Z' ? 'Z: ' : 'E: ').$bb['nombre'])); ?></li>
             <?php endwhile; ?>
             </ol>
         </div>
